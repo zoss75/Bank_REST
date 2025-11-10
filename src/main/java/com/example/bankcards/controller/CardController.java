@@ -24,7 +24,6 @@ public class CardController {
 
     private final CardService cardService;
 
-    // 🔹 Получить все карты пользователя (с фильтрацией)
     @GetMapping
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Page<CardDto>> getUserCards(
@@ -39,7 +38,6 @@ public class CardController {
         return ResponseEntity.ok(result);
     }
 
-    // 🔹 Получить одну карту по ID
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<CardDto> getCardById(@PathVariable Long id) {
@@ -47,7 +45,6 @@ public class CardController {
         return ResponseEntity.ok(toDto(card));
     }
 
-    // 🔹 Создать новую карту
     @PostMapping
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<CardDto> createCard(

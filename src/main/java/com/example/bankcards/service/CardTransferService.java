@@ -1,6 +1,8 @@
 package com.example.bankcards.service;
 
 import com.example.bankcards.entity.Card;
+import com.example.bankcards.exception.BusinessLogicException;
+import com.example.bankcards.exception.ResourceNotFoundException;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.security.UserPrincipal;
 import jakarta.transaction.Transactional;
@@ -21,12 +23,12 @@ public class CardTransferService {
 
     private Card findCard(Long id) {
         return cardRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Карта с ID " + id + " не найдена"));
+                .orElseThrow(() -> new ResourceNotFoundException("Карта с ID " + id + " не найдена"));
     }
 
     private void validateCardIsActive(Card card) {
         if (!card.getStatus().isActive()) {
-            throw new IllegalArgumentException("Карта " + card.getId() + " неактивна или заблокирована");
+            throw new ResourceNotFoundException("Карта " + card.getId() + " неактивна или заблокирована");
         }
     }
 
@@ -46,7 +48,7 @@ public class CardTransferService {
         // Проверка принадлежности карт пользователю
         if (!fromCard.getOwner().getId().equals(currentUser.getId()) ||
                 !toCard.getOwner().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("Вы можете переводить только между своими картами");
+            throw new BusinessLogicException("Вы можете переводить только между своими картами");
         }
 
         executeTransfer(fromCard, toCard, amount);
@@ -62,7 +64,7 @@ public class CardTransferService {
 
     private void executeTransfer(Card fromCard, Card toCard, BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Сумма перевода должна быть положительной");
+            throw new BusinessLogicException("Сумма перевода должна быть положительной");
         }
 
         validateCardIsActive(fromCard);
@@ -72,7 +74,7 @@ public class CardTransferService {
         BigDecimal totalAmount = amount.add(commission);
 
         if (fromCard.getBalance().compareTo(totalAmount) < 0) {
-            throw new IllegalArgumentException("Недостаточно средств для перевода");
+            throw new BusinessLogicException("Недостаточно средств для перевода");
         }
 
         fromCard.setBalance(fromCard.getBalance().subtract(totalAmount));

@@ -3,6 +3,7 @@ package com.example.bankcards.service;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.entity.User;
+import com.example.bankcards.exception.ResourceNotFoundException;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -34,7 +35,7 @@ public class CardService {
     // Получение одной карты по ID
     public Card getCardById(Long id) {
         return cardRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Карта не найдена: id=" + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Карта не найдена: id=" + id));
     }
 
     // Создание карты

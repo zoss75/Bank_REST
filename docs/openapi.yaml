@@ -1,1 +1,509 @@
-# Здесь будет OpenAPI описание всех доступных эндпоинтов и моделей данных.
+openapi: 3.0.3
+info:
+  title: Bank Cards API
+  description: Полностью готовый API для управления пользователями, картами и переводами
+  version: 1.0.2
+
+servers:
+  - url: http://localhost:8080
+    description: Локальный сервер
+
+paths:
+  /users:
+    get:
+      summary: Получить список пользователей с фильтром и пагинацией
+      parameters:
+        - in: query
+          name: role
+          schema:
+            type: string
+            enum: [USER, ADMIN]
+          description: Фильтр по роли
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Номер страницы
+        - in: query
+          name: size
+          schema:
+            type: integer
+            default: 10
+          description: Количество элементов на странице
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Поиск по username
+      responses:
+        '200':
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  page:
+                    type: integer
+                  size:
+                    type: integer
+                  totalElements:
+                    type: integer
+                  totalPages:
+                    type: integer
+              example:
+                content:
+                  - id: 1
+                    username: alice
+                    role: USER
+                  - id: 2
+                    username: bob
+                    role: ADMIN
+                page: 1
+                size: 10
+                totalElements: 2
+                totalPages: 1
+    post:
+      summary: Зарегистрировать нового пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+            example:
+              username: charlie
+              password: secret123
+              role: USER
+      responses:
+        '201':
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: 3
+                username: charlie
+                role: USER
+
+  /users/{id}:
+    get:
+      summary: Получить пользователя по ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Пользователь найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: 1
+                username: alice
+                role: USER
+        '404':
+          description: Пользователь не найден
+    put:
+      summary: Обновить пользователя по ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+            example:
+              username: alice_new
+              role: ADMIN
+      responses:
+        '200':
+          description: Пользователь обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: 1
+                username: alice_new
+                role: ADMIN
+    delete:
+      summary: Удалить пользователя по ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Пользователь удален
+
+  /users/search:
+    get:
+      summary: Поиск пользователей по username
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+          description: Строка поиска
+      responses:
+        '200':
+          description: Результат поиска
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+              example:
+                - id: 1
+                  username: alice
+                  role: USER
+
+  /cards:
+    get:
+      summary: Получить список карт с фильтром и пагинацией
+      parameters:
+        - in: query
+          name: ownerId
+          schema:
+            type: integer
+          description: Фильтр по ID владельца карты
+        - in: query
+          name: minBalance
+          schema:
+            type: number
+            format: double
+          description: Минимальный баланс
+        - in: query
+          name: maxBalance
+          schema:
+            type: number
+            format: double
+          description: Максимальный баланс
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: size
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Список карт
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Card'
+                  page:
+                    type: integer
+                  size:
+                    type: integer
+                  totalElements:
+                    type: integer
+                  totalPages:
+                    type: integer
+              example:
+                content:
+                  - id: 10
+                    number: "1111-2222-3333-4444"
+                    balance: 1000.0
+                    ownerId: 1
+                  - id: 20
+                    number: "5555-6666-7777-8888"
+                    balance: 500.0
+                    ownerId: 2
+                page: 1
+                size: 10
+                totalElements: 2
+                totalPages: 1
+    post:
+      summary: Создать новую карту
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardCreate'
+            example:
+              number: "9999-8888-7777-6666"
+              balance: 2000.0
+              ownerId: 1
+      responses:
+        '201':
+          description: Карта создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+              example:
+                id: 30
+                number: "9999-8888-7777-6666"
+                balance: 2000.0
+                ownerId: 1
+
+  /cards/{id}:
+    get:
+      summary: Получить карту по ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Карта найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+              example:
+                id: 10
+                number: "1111-2222-3333-4444"
+                balance: 1000.0
+                ownerId: 1
+        '404':
+          description: Карта не найдена
+    put:
+      summary: Обновить карту по ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardUpdate'
+            example:
+              balance: 1200.0
+      responses:
+        '200':
+          description: Карта обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+              example:
+                id: 10
+                number: "1111-2222-3333-4444"
+                balance: 1200.0
+                ownerId: 1
+    delete:
+      summary: Удалить карту по ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Карта удалена
+
+  /cards/search:
+    get:
+      summary: Поиск карт по номеру
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+          description: Строка поиска по номеру карты
+      responses:
+        '200':
+          description: Результат поиска
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Card'
+              example:
+                - id: 10
+                  number: "1111-2222-3333-4444"
+                  balance: 1000.0
+                  ownerId: 1
+
+  /transfers:
+    post:
+      summary: Перевести деньги между картами
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+            example:
+              fromCardId: 10
+              toCardId: 20
+              amount: 100.0
+      responses:
+        '200':
+          description: Перевод выполнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+              example:
+                fromCardId: 10
+                toCardId: 20
+                amount: 100.0
+                commission: 1.0
+                status: SUCCESS
+        '400':
+          description: Ошибка перевода
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Недостаточно средств"
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        role:
+          type: string
+          enum: [USER, ADMIN]
+      required:
+        - id
+        - username
+        - role
+
+    UserCreate:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [USER, ADMIN]
+      required:
+        - username
+        - password
+        - role
+
+    UserUpdate:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [USER, ADMIN]
+
+    Card:
+      type: object
+      properties:
+        id:
+          type: integer
+        number:
+          type: string
+        balance:
+          type: number
+          format: double
+        ownerId:
+          type: integer
+      required:
+        - id
+        - number
+        - balance
+        - ownerId
+
+    CardCreate:
+      type: object
+      properties:
+        number:
+          type: string
+        balance:
+          type: number
+          format: double
+        ownerId:
+          type: integer
+      required:
+        - number
+        - balance
+        - ownerId
+
+    CardUpdate:
+      type: object
+      properties:
+        balance:
+          type: number
+          format: double
+
+    TransferRequest:
+      type: object
+      properties:
+        fromCardId:
+          type: integer
+        toCardId:
+          type: integer
+        amount:
+          type: number
+          format: double
+      required:
+        - fromCardId
+        - toCardId
+        - amount
+
+    TransferResponse:
+      type: object
+      properties:
+        fromCardId:
+          type: integer
+        toCardId:
+          type: integer
+        amount:
+          type: number
+          format: double
+        commission:
+          type: number
+          format: double
+        status:
+          type: string
