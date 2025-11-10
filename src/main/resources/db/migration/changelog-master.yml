@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      file: db/migration/changelog-roles.yaml
+  - include:
+      file: db/migration/changelog-users.yaml
+  - include:
+      file: db/migration/changelog-cards.yaml

@@ -1,8 +1,24 @@
-#
-# application.yml — главный конфигурационный файл Spring Boot.
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/bankcards}
+    username: ${SPRING_DATASOURCE_USERNAME:bank_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:bank_pass}
+    driver-class-name: org.postgresql.Driver
 
-Что нужно сделать:
-  - Указать настройки подключения к базе данных.
-  - Указать порт приложения.
-  - Настроить параметры безопасности и JWT.
-  - Включить Swagger UI.
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  liquibase:
+    change-log: ${SPRING_LIQUIBASE_CHANGELOG:classpath:db/migration/changelog-master.xml}
+
+server:
+  port: 8080
+
+jwt:
+  secret: ${JWT_SECRET:SuperSecretJWTKey}
+  expiration: 3600000
